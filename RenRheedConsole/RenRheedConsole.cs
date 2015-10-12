@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Security.Permissions;
 
 namespace LabTools
@@ -92,6 +91,7 @@ namespace LabTools
             try
             {
                 string moveToFullPath = moveTo + "\\" + renTo;
+                System.Threading.Thread.Sleep(2000);  // wait 2sec for file unlocked
                 File.Move(e.FullPath, moveToFullPath);
                 Console.WriteLine($"Move: {e.FullPath} to {moveToFullPath}");
             }
