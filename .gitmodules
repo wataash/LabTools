@@ -1,0 +1,3 @@
+[submodule "AFM/lib/Yunit"]
+	path = AFM/lib/Yunit
+	url = https://github.com/Uberi/Yunit.git
