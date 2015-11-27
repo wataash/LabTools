@@ -1,7 +1,7 @@
 #Include range.ahk
 
 ; Right click "H" mark in the taskbar to stop.
-;~ SetKeyDelay 500
+;~ SetKeyDelay, 500
 
 Space & e::ExitApp
 Space & r::Reload
@@ -11,7 +11,18 @@ Space::Send {Space}
 
 execute()
 {
-    AFM.export_jpg(1, "d:\ashihara\img", 178, 207)
+    ;~ AFM.export_jpg(1, "d:\ashihara\img", 178, 207)
+    
+    configs := [["30u", ".5Hz", "u", 18]
+                 , ["10u",  "1Hz", "d", 18]
+                 , ["3u",   "1Hz", "u", 9]
+                 , ["1u",   "1Hz", "d", 9]
+                 , ["300n", "1Hz", "u", 9]]
+    for index, config in configs
+    {
+        AFM.config_capture(config[1]
+            , config[2], config[3], config[4])
+    }
 }
 
 
@@ -19,11 +30,13 @@ class AFM
 {
     export_jpg(height_range_nm, export_dir, al3_begin, al3_end)
     {
+        SetKeyDelay -1
+        
         ; Be sure: in off-line menu, activate top file
-        WinActivate, NanoScope Control
-
+        
         for i in range(al3_begin, al3_end+1)
         {
+            WinActivate, NanoScope Control
             Send, {Enter}  ; open the activated file
             Send, !n  ; If a dialog of "Save" confirmation appears, reply "No".
             Send, !iL  ; Image -> Left
@@ -38,42 +51,28 @@ class AFM
         }
     }
     
-    config(size, rate, sleep_ms)
+    config_capture(size, rate, u_or_d, capture_minutes)
     {
-        Send, !p  ; panel
-        Sleep, %sleep_ms%
-        Send, s   ; scan?
-        Sleep, %sleep_ms%
+        ; Do NOT "Show all items" in "Scan Controls".
+        ; Activate "Scan size".
         
-        ;; throw if "Scan size" not activated
+        ; throw if u_or_d not in ["u", "d"]
         
-        SendInput, %size%
-        Sleep, %sleep_ms%
-        Loop, 4
-        {
-            SendInput, {Down}
-            Sleep, %sleep_ms%
-        }
-        ;; throw if not addapted
-        SendInput, %rate%
-        Loop, 4
-        {
-            SendInput, {Up}
-            Sleep, %sleep_ms%
-        }
+        SetKeyDelay, 500
+        WinActivate, NanoScope Control
+        
+        Send !ps  ; Panels -> Scan
+        Send % size
+        
+        Send {Down}{Down}{Down}{Down}%rate%
+        Send {Up}{Up}{Up}{Up}
+        
+        Send ^c  ; Capture
+        Send !f%u_or_d%  ; Frame -> Up or Down
+        
+        sleep_minute(capture_minutes)
     }
         
-    capture(u_or_d)
-    {
-        ;; throw if u_or_d not in ["u", "d"]
-        Send, ^c  ; capture
-        Sleep, %sleep_ms%
-        Send, !f  ; frame
-        Sleep, %sleep_ms%
-        SendInput, %u_or_d%
-        ;; throw if not started
-        Sleep, %sleep_ms%
-    }
 
     static dbg_cnt = 0
     dbg()
@@ -88,21 +87,7 @@ class AFM
 
 sleep_minute(minute)
 {
-    Sleep, %minute% * 60 * 1000
+    Sleep % minute * 60 * 1000
 }
 
 
-configs := [["30u", ".5Hz", "u", 18]
-                 , ["10u", ".5Hz", "d", 18]
-                 , ["3u",   "1Hz", "u", 9]
-                 , ["1u",   "1Hz", "d", 9]
-                 , ["300n", "1Hz", "u", 9]]
-
-;~ for size, rate, u_or_d, run_minute in config
-;~ for config in configs
-;~ {
-    ;~ msgbox % config[0]
-    ;~ config(%size%, %rate%, 1000)
-    ;~ capture(%u_or_d%)
-    ;~ sleep_minute(run_minute)
-;~ }
