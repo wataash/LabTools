@@ -17,4 +17,5 @@ list2lists(L, max_length)
 		i_val := Mod(i-1, max_length) + 1  ; e.g. 1,2,3,1,2,3,...
 		res[i_list][i_val] := val_L
 	}
+	return res
 }
